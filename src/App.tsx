@@ -5,6 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import AgentMonitor from "./pages/AgentMonitor";
+import CredibilityScoring from "./pages/CredibilityScoring";
+import CrisisAlerts from "./pages/CrisisAlerts";
+import MediaForensics from "./pages/MediaForensics";
+import { ChatBot } from "./components/ChatBot";
 
 const queryClient = new QueryClient();
 
@@ -16,9 +21,14 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/agent-monitor" element={<AgentMonitor />} />
+          <Route path="/credibility" element={<CredibilityScoring />} />
+          <Route path="/crisis-alerts" element={<CrisisAlerts />} />
+          <Route path="/media-forensics" element={<MediaForensics />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ChatBot />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

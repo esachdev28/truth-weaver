@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
+import { NavLink } from "./NavLink";
 
 export const Header = () => {
   const [isDark, setIsDark] = useState(false);
@@ -39,18 +40,11 @@ export const Header = () => {
           
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-6">
-            <a href="#" className="text-sm font-medium hover:text-primary transition-colors">
-              Categories
-            </a>
-            <a href="#" className="text-sm font-medium hover:text-primary transition-colors">
-              Crisis Alerts
-            </a>
-            <a href="#" className="text-sm font-medium hover:text-primary transition-colors">
-              About
-            </a>
-            <a href="#" className="text-sm font-medium hover:text-primary transition-colors">
-              API
-            </a>
+            <NavLink to="/" className="text-sm font-medium hover:text-primary transition-colors">Home</NavLink>
+            <NavLink to="/agent-monitor" className="text-sm font-medium hover:text-primary transition-colors">Agent Monitor</NavLink>
+            <NavLink to="/credibility" className="text-sm font-medium hover:text-primary transition-colors">Credibility</NavLink>
+            <NavLink to="/crisis-alerts" className="text-sm font-medium hover:text-primary transition-colors">Crisis Alerts</NavLink>
+            <NavLink to="/media-forensics" className="text-sm font-medium hover:text-primary transition-colors">Media Forensics</NavLink>
           </nav>
           
           {/* Actions */}
