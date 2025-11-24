@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+groq
+ddgs
+python-dotenv
+newsdataapi
+python-multipart
+requests
+beautifulsoup4
