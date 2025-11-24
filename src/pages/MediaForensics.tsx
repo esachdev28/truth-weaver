@@ -10,34 +10,58 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { toast } from "sonner";
 
-const mockAnalysis = {
-  defakeScore: 23,
-  manipulations: [
-    "Face swap detected in frames 45-120",
-    "Inconsistent lighting on subject vs background",
-    "Re-encoding artifacts suggest multiple edits",
-    "Audio-visual synchronization mismatch",
-  ],
-  provenance: "Original source: Unknown. First appeared on Twitter 3 days ago.",
-  recommendation: "HIGH RISK - Multiple manipulation indicators detected",
-};
+interface ForensicAnalysis {
+  defakeScore: number;
+  manipulations: string[];
+  provenance: string;
+  recommendation: string;
+}
 
 export default function MediaForensics() {
   const [url, setUrl] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [analysis, setAnalysis] = useState<ForensicAnalysis | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+      toast.success("File selected: " + e.target.files[0].name);
+    }
+  };
 
   const handleAnalyze = async () => {
-    if (!url) {
+    if (!url && !file) {
       toast.error("Please provide a URL or upload a file");
       return;
     }
 
     setIsAnalyzing(true);
-    await new Promise(resolve => setTimeout(resolve, 2500));
-    setIsAnalyzing(false);
-    setShowResults(true);
-    toast.success("Forensic analysis complete!");
+    setShowResults(false);
+
+    try {
+      const formData = new FormData();
+      if (url) formData.append("url", url);
+      if (file) formData.append("file", file);
+
+      const response = await fetch("/api/forensics", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Analysis failed");
+
+      const data = await response.json();
+      setAnalysis(data);
+      setShowResults(true);
+      toast.success("Forensic analysis complete!");
+    } catch (error) {
+      console.error("Error analyzing media:", error);
+      toast.error("Failed to analyze media");
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const getScoreColor = (score: number) => {
@@ -55,7 +79,7 @@ export default function MediaForensics() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Media Forensics</h1>
@@ -99,10 +123,16 @@ export default function MediaForensics() {
 
               <div className="space-y-2">
                 <Label>Upload Media File</Label>
-                <div className="border-2 border-dashed rounded-lg p-12 text-center hover:border-primary transition-colors cursor-pointer">
+                <div className="border-2 border-dashed rounded-lg p-12 text-center hover:border-primary transition-colors cursor-pointer relative">
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={handleFileChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
                   <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <p className="text-sm font-medium mb-1">
-                    Click to upload or drag and drop
+                    {file ? file.name : "Click to upload or drag and drop"}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Images: JPG, PNG, WebP (max 10MB)
@@ -118,8 +148,8 @@ export default function MediaForensics() {
                 <Input placeholder="Paste link to Twitter, Instagram, or Facebook post" />
               </div>
 
-              <Button 
-                onClick={handleAnalyze} 
+              <Button
+                onClick={handleAnalyze}
                 className="w-full"
                 disabled={isAnalyzing}
               >
@@ -128,7 +158,7 @@ export default function MediaForensics() {
 
               <div className="p-4 bg-muted/50 rounded-lg">
                 <p className="text-xs text-muted-foreground">
-                  <strong>Detection Methods:</strong> AI watermark detection, face manipulation analysis, 
+                  <strong>Detection Methods:</strong> AI watermark detection, face manipulation analysis,
                   re-encoding artifact detection, lighting consistency checks, audio-visual sync analysis
                 </p>
               </div>
@@ -141,7 +171,7 @@ export default function MediaForensics() {
               <h2 className="text-2xl font-bold">Forensic Report</h2>
             </div>
 
-            {!showResults ? (
+            {!showResults || !analysis ? (
               <div className="flex flex-col items-center justify-center h-96 text-center">
                 <Shield className="h-20 w-20 text-muted-foreground mb-4" />
                 <p className="text-muted-foreground text-lg">
@@ -155,16 +185,16 @@ export default function MediaForensics() {
               <div className="space-y-6">
                 <div className="text-center p-6 bg-muted/50 rounded-lg">
                   <div className="text-5xl font-bold mb-2">
-                    <span className={getScoreColor(mockAnalysis.defakeScore)}>
-                      {mockAnalysis.defakeScore}
+                    <span className={getScoreColor(analysis.defakeScore)}>
+                      {analysis.defakeScore}
                     </span>
                     <span className="text-2xl text-muted-foreground">/100</span>
                   </div>
-                  <Badge 
-                    variant={mockAnalysis.defakeScore <= 30 ? "default" : "destructive"}
+                  <Badge
+                    variant={analysis.defakeScore <= 30 ? "default" : "destructive"}
                     className="text-sm"
                   >
-                    {getScoreLabel(mockAnalysis.defakeScore)}
+                    {getScoreLabel(analysis.defakeScore)}
                   </Badge>
                   <p className="text-xs text-muted-foreground mt-2">Manipulation Risk Score</p>
                 </div>
@@ -176,7 +206,7 @@ export default function MediaForensics() {
                       Detected Manipulations
                     </h3>
                     <div className="space-y-2">
-                      {mockAnalysis.manipulations.map((item, idx) => (
+                      {analysis.manipulations.map((item, idx) => (
                         <div key={idx} className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
                           <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
                           <p className="text-sm">{item}</p>
@@ -188,13 +218,13 @@ export default function MediaForensics() {
                   <div>
                     <h3 className="font-semibold mb-2">Provenance Analysis</h3>
                     <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
-                      {mockAnalysis.provenance}
+                      {analysis.provenance}
                     </p>
                   </div>
 
                   <div className="p-4 border-l-4 border-destructive bg-destructive/10 rounded">
                     <h3 className="font-semibold mb-1 text-destructive">Recommendation</h3>
-                    <p className="text-sm">{mockAnalysis.recommendation}</p>
+                    <p className="text-sm">{analysis.recommendation}</p>
                   </div>
 
                   <div className="space-y-2">

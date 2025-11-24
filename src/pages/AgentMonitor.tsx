@@ -1,61 +1,59 @@
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Activity, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { toast } from "sonner";
 
-const agents = [
-  {
-    name: "ScanAgent",
-    status: "active",
-    processed: 1247,
-    active: 3,
-    description: "Monitors social media and news sources for emerging claims",
-    progress: 78,
-  },
-  {
-    name: "VerifyAgent",
-    status: "active",
-    processed: 892,
-    active: 5,
-    description: "Cross-references claims with trusted fact-checking sources",
-    progress: 65,
-  },
-  {
-    name: "ScoreAgent",
-    status: "active",
-    processed: 756,
-    active: 2,
-    description: "Calculates credibility scores based on evidence strength",
-    progress: 82,
-  },
-  {
-    name: "ExplainAgent",
-    status: "idle",
-    processed: 634,
-    active: 0,
-    description: "Generates human-readable explanations and translations",
-    progress: 45,
-  },
-];
+interface Agent {
+  name: string;
+  status: string;
+  processed: number;
+  active: number;
+  description: string;
+  progress: number;
+}
 
-const activityLogs = [
-  { time: "2 min ago", agent: "VerifyAgent", action: "Verified claim about climate data", status: "success" },
-  { time: "5 min ago", agent: "ScanAgent", action: "Detected emerging claim on Twitter", status: "success" },
-  { time: "8 min ago", agent: "ScoreAgent", action: "Scored health misinformation claim", status: "success" },
-  { time: "12 min ago", agent: "VerifyAgent", action: "Failed to verify claim - insufficient sources", status: "warning" },
-  { time: "15 min ago", agent: "ExplainAgent", action: "Generated Hindi translation for alert", status: "success" },
-  { time: "18 min ago", agent: "ScanAgent", action: "Processed 47 new social media posts", status: "success" },
-  { time: "22 min ago", agent: "ScoreAgent", action: "Updated credibility database", status: "success" },
-  { time: "25 min ago", agent: "VerifyAgent", action: "Cross-referenced with PolitiFact", status: "success" },
-];
+interface ActivityLog {
+  time: string;
+  agent: string;
+  action: string;
+  status: string;
+}
 
 export default function AgentMonitor() {
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/api/agents");
+        if (!response.ok) throw new Error("Failed to fetch agent status");
+        const data = await response.json();
+        setAgents(data.agents);
+        setActivityLogs(data.activity_logs);
+      } catch (error) {
+        console.error("Error fetching agent status:", error);
+        toast.error(`Failed to load agent status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+    // Poll every 10 seconds
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Agent Monitor</h1>
@@ -63,7 +61,9 @@ export default function AgentMonitor() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {agents.map((agent) => (
+          {loading ? (
+            <div className="col-span-4 text-center py-8">Loading agent status...</div>
+          ) : agents.map((agent) => (
             <Card key={agent.name} className="p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <div>
@@ -74,9 +74,9 @@ export default function AgentMonitor() {
                 </div>
                 <Activity className="h-5 w-5 text-primary" />
               </div>
-              
+
               <p className="text-sm text-muted-foreground mb-4">{agent.description}</p>
-              
+
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Processed</span>
@@ -103,7 +103,7 @@ export default function AgentMonitor() {
             <Clock className="h-5 w-5 text-primary" />
             <h2 className="text-2xl font-bold">Activity Feed</h2>
           </div>
-          
+
           <div className="space-y-4">
             {activityLogs.map((log, idx) => (
               <div key={idx} className="flex items-start gap-4 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
