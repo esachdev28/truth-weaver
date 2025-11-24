@@ -45,6 +45,7 @@ export const Header = () => {
             <NavLink to="/credibility" className="text-sm font-medium hover:text-primary transition-colors">Credibility</NavLink>
             <NavLink to="/crisis-alerts" className="text-sm font-medium hover:text-primary transition-colors">Crisis Alerts</NavLink>
             <NavLink to="/media-forensics" className="text-sm font-medium hover:text-primary transition-colors">Media Forensics</NavLink>
+            <NavLink to="/spotfake" className="text-sm font-medium hover:text-primary transition-colors">SpotFake</NavLink>
           </nav>
           
           {/* Actions */}

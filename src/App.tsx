@@ -9,6 +9,7 @@ import AgentMonitor from "./pages/AgentMonitor";
 import CredibilityScoring from "./pages/CredibilityScoring";
 import CrisisAlerts from "./pages/CrisisAlerts";
 import MediaForensics from "./pages/MediaForensics";
+import SpotFake from "./pages/SpotFake";
 import { ChatBot } from "./components/ChatBot";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/credibility" element={<CredibilityScoring />} />
           <Route path="/crisis-alerts" element={<CrisisAlerts />} />
           <Route path="/media-forensics" element={<MediaForensics />} />
+          <Route path="/spotfake" element={<SpotFake />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

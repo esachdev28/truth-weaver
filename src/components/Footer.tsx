@@ -29,10 +29,10 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { icon: Twitter, href: "#", label: "Twitter" },
-  { icon: Facebook, href: "#", label: "Facebook" },
-  { icon: Linkedin, href: "#", label: "LinkedIn" },
-  { icon: Github, href: "#", label: "GitHub" },
+  { icon: Twitter, href: "https://twitter.com/cruxai", label: "Twitter" },
+  { icon: Facebook, href: "https://facebook.com/cruxai", label: "Facebook" },
+  { icon: Linkedin, href: "https://linkedin.com/company/cruxai", label: "LinkedIn" },
+  { icon: Github, href: "https://github.com/cruxai", label: "GitHub" },
   { icon: Mail, href: "mailto:contact@cruxai.com", label: "Email" },
 ];
 
