@@ -101,10 +101,10 @@ export default function CrisisAlerts() {
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="mb-8">
+          <div className="mb-8">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-destructive to-orange-500 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-cyan-500 bg-clip-text text-transparent">
                 Crisis Alerts
               </h1>
               <p className="text-muted-foreground text-lg">
@@ -119,26 +119,26 @@ export default function CrisisAlerts() {
 
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="p-4 border-destructive/20 bg-destructive/5">
+            <Card className="p-4 border-amber-500/20 bg-amber-500/5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Critical Alerts</p>
-                  <p className="text-2xl font-bold text-destructive">
+                  <p className="text-2xl font-bold text-amber-600">
                     {alerts.filter(a => a.severity === "CRITICAL").length}
                   </p>
                 </div>
-                <AlertTriangle className="h-8 w-8 text-destructive" />
+                <AlertTriangle className="h-8 w-8 text-amber-600" />
               </div>
             </Card>
             <Card className="p-4 border-orange-500/20 bg-orange-500/5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">High Priority</p>
-                  <p className="text-2xl font-bold text-orange-500">
+                  <p className="text-2xl font-bold text-orange-600">
                     {alerts.filter(a => a.severity === "HIGH").length}
                   </p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-orange-500" />
+                <TrendingUp className="h-8 w-8 text-orange-600" />
               </div>
             </Card>
             <Card className="p-4 border-primary/20 bg-primary/5">
@@ -263,22 +263,22 @@ export default function CrisisAlerts() {
                     <Card 
                       key={alert.id} 
                       className={`p-5 hover:shadow-lg transition-all border-l-4 ${
-                        alert.severity === "CRITICAL" ? "border-l-destructive bg-destructive/5" :
-                        alert.severity === "HIGH" ? "border-l-orange-500 bg-orange-500/5" :
-                        "border-l-amber-500 bg-amber-500/5"
+                        alert.severity === "CRITICAL" ? "border-l-amber-600 bg-amber-50 dark:bg-amber-950/20" :
+                        alert.severity === "HIGH" ? "border-l-orange-500 bg-orange-50 dark:bg-orange-950/20" :
+                        "border-l-primary bg-primary/5"
                       }`}
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <div className={`p-2 rounded-full ${
-                            alert.severity === "CRITICAL" ? "bg-destructive/20" :
+                            alert.severity === "CRITICAL" ? "bg-amber-500/20" :
                             alert.severity === "HIGH" ? "bg-orange-500/20" :
-                            "bg-amber-500/20"
+                            "bg-primary/20"
                           }`}>
                             <AlertTriangle className={`h-5 w-5 ${
-                              alert.severity === "CRITICAL" ? "text-destructive" :
-                              alert.severity === "HIGH" ? "text-orange-500" :
-                              "text-amber-500"
+                              alert.severity === "CRITICAL" ? "text-amber-600" :
+                              alert.severity === "HIGH" ? "text-orange-600" :
+                              "text-primary"
                             }`} />
                           </div>
                           <div>
