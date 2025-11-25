@@ -1,31 +1,7 @@
 {
-    "version": 2,
-    "builds": [
-        {
-            "src": "api/index.py",
-            "use": "@vercel/python",
-            "config": {
-                "maxLambdaSize": "50mb"
-            }
-        }
-    ],
-    "routes": [
-        {
-            "src": "/api/(.*)",
-            "dest": "api/index.py"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/$1"
-        }
-    ],
-    "env": {
-        "GROQ_API_KEY": "@groq_api_key",
-        "NEWSDATA_API_KEY": "@newsdata_api_key",
-        "HUGGINGFACE_API_KEY": "@huggingface_api_key"
-    },
     "functions": {
-        "api/index.py": {
+        "api/**/*.py": {
+            "runtime": "python3.9",
             "memory": 1024,
             "maxDuration": 10
         }
