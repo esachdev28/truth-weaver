@@ -1,14 +1,15 @@
 import { Card } from "@/components/ui/card";
-import { 
-  Newspaper, 
-  Vote, 
-  HeartPulse, 
-  AlertTriangle, 
-  LineChart, 
-  Cpu, 
-  FlaskConical, 
-  Shield, 
-  Globe, 
+import { useNavigate } from "react-router-dom";
+import {
+  Newspaper,
+  Vote,
+  HeartPulse,
+  AlertTriangle,
+  LineChart,
+  Cpu,
+  FlaskConical,
+  Shield,
+  Globe,
   Hash,
   ArrowRight
 } from "lucide-react";
@@ -27,6 +28,12 @@ const categories = [
 ];
 
 export const CategoryGrid = () => {
+  const navigate = useNavigate();
+
+  const handleCategoryClick = (slug: string) => {
+    navigate(`/category/${slug}`);
+  };
+
   return (
     <section className="w-full py-16 bg-background">
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -38,14 +45,15 @@ export const CategoryGrid = () => {
             Browse verified claims and fact-checks across different topics. Click any category to dive deeper.
           </p>
         </div>
-        
+
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {categories.map((category) => {
             const Icon = category.icon;
-            
+
             return (
-              <Card 
+              <Card
                 key={category.slug}
+                onClick={() => handleCategoryClick(category.slug)}
                 className="p-6 rounded-2xl border-2 hover:shadow-lg hover:border-primary/50 transition-all cursor-pointer group"
               >
                 <div className="flex flex-col items-center text-center space-y-3">

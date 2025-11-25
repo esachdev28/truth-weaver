@@ -54,15 +54,48 @@ npm run dev
 
 This project is built with:
 
+### Frontend
 - Vite
 - TypeScript
 - React
 - shadcn-ui
 - Tailwind CSS
 
+### Backend
+- FastAPI (Python)
+- Groq AI (for fact-checking and explanations)
+- DuckDuckGo Search (for evidence gathering)
+- NewsData API (for news scanning)
+
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/04867c77-28ed-4e77-aa37-94e24e04c6e1) and click on Share -> Publish.
+### Quick Deploy to Vercel
+
+1. Install Vercel CLI: `npm install -g vercel`
+2. Run: `vercel`
+3. Configure environment variables in Vercel dashboard:
+   - `GROQ_API_KEY` (Required)
+   - `NEWSDATA_API_KEY` (Optional)
+4. Redeploy: `vercel --prod`
+
+For detailed deployment instructions, troubleshooting, and production setup, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+### Local Development
+
+**Run frontend and backend together:**
+```bash
+npm install
+npm run dev:all
+```
+
+**Or run separately:**
+```bash
+# Frontend
+npm run dev
+
+# Backend (in another terminal)
+npm run backend
+```
 
 ## Can I connect a custom domain to my Lovable project?
 

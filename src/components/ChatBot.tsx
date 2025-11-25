@@ -5,13 +5,6 @@ import { Input } from "@/components/ui/input";
 import { MessageCircle, X, Send, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const mockResponses: Record<string, string> = {
-  "crisis": "I found 4 active crisis alerts. The most critical is the Cyclone Warning in Mumbai. Would you like me to show you the Crisis Alerts page?",
-  "verify": "I can help you verify claims. Please paste the text or URL you'd like me to check, and I'll analyze it for credibility.",
-  "agent": "All agents are currently active. ScanAgent has processed 1,247 claims today. Would you like to see the Agent Monitor page?",
-  "help": "I can help you with: ✓ Quick fact-checks ✓ Navigate to pages ✓ Check crisis alerts ✓ View agent status. What would you like to do?",
-};
-
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -19,30 +12,37 @@ export function ChatBot() {
     { role: "assistant", content: "Hi! I'm your CruxAI assistant. I can help you verify claims, check crisis alerts, or navigate the platform. How can I help you today?" }
   ]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMessage = input.trim();
     setMessages(prev => [...prev, { role: "user", content: userMessage }]);
     setInput("");
 
-    // Mock response based on keywords
-    setTimeout(() => {
-      let response = "I'm here to help! You can ask me about crisis alerts, agent status, or to verify claims.";
-      
-      const lowerInput = userMessage.toLowerCase();
-      if (lowerInput.includes("crisis") || lowerInput.includes("alert")) {
-        response = mockResponses.crisis;
-      } else if (lowerInput.includes("verify") || lowerInput.includes("check") || lowerInput.includes("fact")) {
-        response = mockResponses.verify;
-      } else if (lowerInput.includes("agent") || lowerInput.includes("status")) {
-        response = mockResponses.agent;
-      } else if (lowerInput.includes("help")) {
-        response = mockResponses.help;
-      }
+    // Call real LLM API
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          history: messages
+        }),
+      });
 
-      setMessages(prev => [...prev, { role: "assistant", content: response }]);
-    }, 500);
+      if (!response.ok) throw new Error("Chat API failed");
+
+      const data = await response.json();
+      setMessages(prev => [...prev, { role: "assistant", content: data.response }]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      setMessages(prev => [...prev, {
+        role: "assistant",
+        content: "I'm here to help! You can ask me about crisis alerts, agent status, or to verify claims."
+      }]);
+    }
   };
 
   return (

@@ -1,12 +1,14 @@
-from fastapi import FastAPI, BackgroundTasks, HTTPException, Form, File, UploadFile
+from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
+from typing import Optional, List
 import uuid
+from datetime import datetime
 from models import (
-    Claim, Evidence, ScoreResponse, CrisisResponse, 
-    ExplainRequest, ExplainResponse, ScanRequest, VerifyRequest, ScoreRequest
+    Claim, Evidence, ScoreResponse, ExplainResponse, 
+    CrisisResponse, ScanRequest, ScoreRequest, ExplainRequest
 )
 from agents import ScanAgent, VerifyAgent, ScoreAgent, ExplainAgent, CrisisAgent
+from image_analyzer import image_analyzer
 
 app = FastAPI(title="Crux-AI Backend")
 
@@ -47,34 +49,67 @@ async def verify_claim(
     claim_text = text or ""
     
     # Create a new claim object
-    claim = Claim(
-        id=str(uuid.uuid4()),
-        text=claim_text,
-        status="processing"
-    )
-    
-    # 1. Verify (pass link and image if available)
-    # We need to read image content if present
-    image_content = await image.read() if image else None
-    
-    claim = verify_agent.verify(claim, link=link, image_content=image_content)
-    
-    # 2. Score
-    score = score_agent.score(claim)
-    claim.score = score
-    
-    # 3. Update status
-    if score.verdict == "VERIFIED":
-        claim.status = "verified"
-    else:
-        claim.status = "unverified"
-        
-    processed_claims.append(claim)
-    
-    return {
-        "claim": claim,
-        "score": score
+    """
+    Verify a claim (text, link, or image).
+    Now supports AI-generated image detection!
+    """
+    result = {
+        "claim": None,
+        "score": None,
+        "image_analysis": None
     }
+    
+    # Handle text/link verification (existing functionality)
+    if text or link:
+        claim_text = text if text else f"Claim from: {link}"
+        
+        # Create a new claim object
+        claim = Claim(
+            id=str(uuid.uuid4()),
+            text=claim_text,
+            status="processing"
+        )
+
+        # Verify using existing agents
+        claim = verify_agent.verify(claim, link=link) # Assuming verify_agent.verify can take a Claim object and link
+        score = score_agent.score(claim)
+        
+        # Set status based on score
+        if score.verdict == "VERIFIED": # Assuming score object has a verdict
+            claim.status = "verified"
+        elif score.verdict == "FALSE": # Assuming score object has a verdict
+            claim.status = "false"
+        else:
+            claim.status = "unverified"
+        
+        processed_claims.append(claim)
+        
+        result["claim"] = claim
+        result["score"] = score
+    
+    # Handle image analysis (NEW functionality)
+    if image:
+        try:
+            print(f"Received image: {image.filename}")
+            
+            # Read image data
+            image_data = await image.read()
+            print(f"Image size: {len(image_data)} bytes")
+            
+            # Analyze image
+            analysis = image_analyzer.analyze_image(image_data)
+            
+            result["image_analysis"] = analysis
+            print("Image analysis complete!")
+            
+        except Exception as e:
+            print(f"ERROR analyzing image: {e}")
+            result["image_analysis"] = {
+                "error": str(e),
+                "message": "Failed to analyze image"
+            }
+    
+    return result
 
 @app.post("/api/score", response_model=ScoreResponse)
 def score_claim(request: ScoreRequest):
@@ -112,6 +147,20 @@ def background_scan(source_url: str):
 def trigger_scan(request: ScanRequest, background_tasks: BackgroundTasks):
     background_tasks.add_task(background_scan, request.source_url)
     return {"message": f"Scan initiated for {request.source_url}"}
+
+@app.get("/api/news/{category}")
+def get_news_by_category(category: str):
+    """Fetch news by category"""
+    try:
+        claims = scan_agent.scan_by_category(category)
+        return {
+            "category": category,
+            "count": len(claims),
+            "articles": claims
+        }
+    except Exception as e:
+        print(f"Error fetching news for category {category}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/agents")
 def get_agents_status():
@@ -181,6 +230,87 @@ def analyze_media(
         "provenance": "Source origin analysis completed.",
         "recommendation": "HIGH RISK" if score > 60 else ("MODERATE RISK" if score > 30 else "LIKELY AUTHENTIC")
     }
+
+@app.post("/api/chat")
+async def chat(request: dict):
+    """
+    Chat endpoint using Hugging Face LLM for AI assistance (FREE!).
+    """
+    try:
+        user_message = request.get("message", "")
+        chat_history = request.get("history", [])
+        
+        if not user_message:
+            raise HTTPException(status_code=400, detail="Message is required")
+        
+        # Use Hugging Face API for real LLM response
+        from huggingface_hub import InferenceClient
+        import os
+        
+        hf_api_key = os.getenv("HUGGINGFACE_API_KEY")
+        if not hf_api_key:
+            return {
+                "response": "I'm here to help! I can assist you with verifying claims, checking crisis alerts, or navigating the platform. How can I help you today?"
+            }
+        
+        client = InferenceClient(token=hf_api_key)
+        
+        # Build messages for chat
+        messages = [
+            {
+                "role": "system",
+                "content": "You are CruxAI Assistant, a helpful AI for a fact-checking platform. Be concise (2-3 sentences max). Help users verify claims and navigate features."
+            }
+        ]
+        
+        # Add last 3 messages for context
+        for msg in chat_history[-3:]:
+            messages.append({
+                "role": msg.get("role", "user"),
+                "content": msg.get("content", "")
+            })
+        
+        # Add current message
+        messages.append({
+            "role": "user",
+            "content": user_message
+        })
+        
+        # Use Groq API (same as credibility scoring - we know it works!)
+        from groq import Groq
+        
+        groq_api_key = os.getenv("GROQ_API_KEY")
+        if not groq_api_key:
+            return {
+                "response": "I'm here to help! I can assist you with verifying claims, checking crisis alerts, or navigating the platform."
+            }
+        
+        client = Groq(api_key=groq_api_key)
+        
+        # Use Groq's chat completion
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",  # Fast and capable
+            messages=messages,
+            temperature=0.7,
+            max_tokens=150,
+            top_p=1,
+            stream=False
+        )
+        
+        response_text = completion.choices[0].message.content.strip()
+        
+        return {
+            "response": response_text
+        }
+        
+    except Exception as e:
+        print(f"ERROR in chat endpoint: {e}")
+        import traceback
+        traceback.print_exc()
+        # Fallback response on error
+        return {
+            "response": "I'm here to help! You can ask me about crisis alerts, agent status, or to verify claims. What would you like to know?"
+        }
 
 if __name__ == "__main__":
     import uvicorn

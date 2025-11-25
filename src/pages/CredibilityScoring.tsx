@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Link2, FileText, Shield, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { Upload, Link2, FileText, Shield, AlertTriangle, CheckCircle, XCircle, Eye } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { toast } from "sonner";
@@ -28,6 +28,27 @@ interface Claim {
   }>;
 }
 
+interface ImageAnalysis {
+  ai_detection: {
+    ai_probability: number;
+    real_probability: number;
+    verdict: string;
+    confidence: string;
+    model: string;
+  };
+  description: {
+    description: string;
+    model: string;
+    confidence: string;
+  };
+  metadata: {
+    format: string;
+    size: string;
+    width: number;
+    height: number;
+  };
+}
+
 export default function CredibilityScoring() {
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
@@ -36,6 +57,7 @@ export default function CredibilityScoring() {
   const [showResults, setShowResults] = useState(false);
   const [scoreData, setScoreData] = useState<ScoreResponse | null>(null);
   const [claimData, setClaimData] = useState<Claim | null>(null);
+  const [imageAnalysis, setImageAnalysis] = useState<ImageAnalysis | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -71,6 +93,7 @@ export default function CredibilityScoring() {
       const data = await response.json();
       setScoreData(data.score);
       setClaimData(data.claim);
+      setImageAnalysis(data.image_analysis);
       setShowResults(true);
       toast.success("Analysis complete!");
     } catch (error) {
@@ -250,6 +273,109 @@ export default function CredibilityScoring() {
             )}
           </Card>
         </div>
+
+        {/* Image Analysis Results - NEW SECTION */}
+        {showResults && imageAnalysis && (
+          <Card className="p-6 mt-6">
+            <div className="flex items-center gap-2 mb-6">
+              <Upload className="h-5 w-5 text-primary" />
+              <h2 className="text-2xl font-bold">AI Image Analysis</h2>
+            </div>
+
+            {/* Image Description - NEW */}
+            {imageAnalysis.description && (
+              <Card className="p-6 mb-6 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950 border-2 border-blue-200 dark:border-blue-800">
+                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                  <Eye className="h-5 w-5 text-blue-600" />
+                  Image Description
+                </h3>
+                <p className="text-base leading-relaxed mb-3">
+                  {imageAnalysis.description.description}
+                </p>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <span>Model: {imageAnalysis.description.model}</span>
+                  <span>•</span>
+                  <span>Confidence: {imageAnalysis.description.confidence}</span>
+                </div>
+              </Card>
+            )}
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* AI Detection Score */}
+              <div className="space-y-4">
+                <div className="text-center p-6 bg-muted/50 rounded-lg">
+                  <div className="text-5xl font-bold mb-2">
+                    <span className={imageAnalysis.ai_detection.ai_probability > 70 ? "text-red-500" : imageAnalysis.ai_detection.ai_probability > 40 ? "text-amber-500" : "text-emerald-500"}>
+                      {imageAnalysis.ai_detection.ai_probability.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-center gap-2 items-center mb-2">
+                    {imageAnalysis.ai_detection.ai_probability > 70 ? (
+                      <Badge variant="destructive">Likely AI-Generated</Badge>
+                    ) : imageAnalysis.ai_detection.ai_probability > 40 ? (
+                      <Badge variant="secondary" className="bg-amber-500 text-white">Uncertain</Badge>
+                    ) : (
+                      <Badge className="bg-emerald-500">Likely Real</Badge>
+                    )}
+                  </div>
+                  <Badge variant="outline" className="text-sm">AI Generation Probability</Badge>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span>AI-Generated</span>
+                    <span className="font-semibold">{imageAnalysis.ai_detection.ai_probability.toFixed(1)}%</span>
+                  </div>
+                  <Progress value={imageAnalysis.ai_detection.ai_probability} className="h-2" />
+
+                  <div className="flex justify-between text-sm">
+                    <span>Real Photo</span>
+                    <span className="font-semibold">{imageAnalysis.ai_detection.real_probability.toFixed(1)}%</span>
+                  </div>
+                  <Progress value={imageAnalysis.ai_detection.real_probability} className="h-2" />
+                </div>
+
+                <div className="bg-muted p-3 rounded text-sm">
+                  <p><strong>Verdict:</strong> {imageAnalysis.ai_detection.verdict}</p>
+                  <p><strong>Confidence:</strong> {imageAnalysis.ai_detection.confidence}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Model: {imageAnalysis.ai_detection.model}</p>
+                </div>
+              </div>
+
+              {/* Image Metadata */}
+              <div className="space-y-4">
+                <h3 className="font-semibold">Image Metadata</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between p-2 bg-muted rounded">
+                    <span className="text-muted-foreground">Format:</span>
+                    <span className="font-medium">{imageAnalysis.metadata.format}</span>
+                  </div>
+                  <div className="flex justify-between p-2 bg-muted rounded">
+                    <span className="text-muted-foreground">Dimensions:</span>
+                    <span className="font-medium">{imageAnalysis.metadata.size}</span>
+                  </div>
+                  <div className="flex justify-between p-2 bg-muted rounded">
+                    <span className="text-muted-foreground">Width:</span>
+                    <span className="font-medium">{imageAnalysis.metadata.width}px</span>
+                  </div>
+                  <div className="flex justify-between p-2 bg-muted rounded">
+                    <span className="text-muted-foreground">Height:</span>
+                    <span className="font-medium">{imageAnalysis.metadata.height}px</span>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded text-sm">
+                  <p className="font-semibold mb-1">💡 Detection Tips:</p>
+                  <ul className="text-xs space-y-1 text-muted-foreground">
+                    <li>• AI images often have perfect dimensions (512x512, 1024x1024)</li>
+                    <li>• Real photos usually have EXIF metadata</li>
+                    <li>• Check for unnatural patterns or artifacts</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
       </main>
 
       <Footer />

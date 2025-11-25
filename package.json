@@ -9,9 +9,9 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "backend": "cd backend_fastapi && source venv/bin/activate && uvicorn main:app --reload",
-    "backend:setup": "cd backend_fastapi && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
-    "dev:all": "concurrently \"npm run dev\" \"npm run backend\""
+    "backend": "./venv/bin/python start_backend.py",
+    "backend:setup": "python3 -m venv venv && ./venv/bin/pip install -r requirements.txt",
+    "dev:all": "concurrently -n \"FRONTEND,BACKEND\" -c \"cyan,green\" \"npm run dev\" \"npm run backend\" --kill-others"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
