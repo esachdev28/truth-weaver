@@ -31,7 +31,7 @@ export default function AgentMonitor() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/agents");
+        const response = await fetch("https://fast-backend-n6qp.onrender.com/api/agents");
         if (!response.ok) throw new Error("Failed to fetch agent status");
         const data = await response.json();
         setAgents(data.agents);

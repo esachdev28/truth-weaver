@@ -21,7 +21,7 @@ export function ChatBot() {
 
     // Call real LLM API
     try {
-      const response = await fetch("/api/chat", {
+      const response = await fetch("https://fast-backend-n6qp.onrender.com/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

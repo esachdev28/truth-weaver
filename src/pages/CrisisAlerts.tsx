@@ -47,7 +47,7 @@ export default function CrisisAlerts() {
   const fetchAlerts = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/crisis");
+      const response = await fetch("https://fast-backend-n6qp.onrender.com/api/crisis");
       if (!response.ok) throw new Error("Failed to fetch alerts");
       const data: CrisisResponse = await response.json();
       console.log("Fetched Crisis Data:", data);
@@ -101,7 +101,7 @@ export default function CrisisAlerts() {
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-8">
-          <div className="mb-8">
+        <div className="mb-8">
           <div className="flex justify-between items-start mb-6">
             <div>
               <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-cyan-500 bg-clip-text text-transparent">
@@ -260,26 +260,23 @@ export default function CrisisAlerts() {
                   </div>
                 ) : (
                   filteredAlerts.map((alert) => (
-                    <Card 
-                      key={alert.id} 
-                      className={`p-5 hover:shadow-lg transition-all border-l-4 ${
-                        alert.severity === "CRITICAL" ? "border-l-amber-600 bg-amber-50 dark:bg-amber-950/20" :
-                        alert.severity === "HIGH" ? "border-l-orange-500 bg-orange-50 dark:bg-orange-950/20" :
-                        "border-l-primary bg-primary/5"
-                      }`}
+                    <Card
+                      key={alert.id}
+                      className={`p-5 hover:shadow-lg transition-all border-l-4 ${alert.severity === "CRITICAL" ? "border-l-amber-600 bg-amber-50 dark:bg-amber-950/20" :
+                          alert.severity === "HIGH" ? "border-l-orange-500 bg-orange-50 dark:bg-orange-950/20" :
+                            "border-l-primary bg-primary/5"
+                        }`}
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-full ${
-                            alert.severity === "CRITICAL" ? "bg-amber-500/20" :
-                            alert.severity === "HIGH" ? "bg-orange-500/20" :
-                            "bg-primary/20"
-                          }`}>
-                            <AlertTriangle className={`h-5 w-5 ${
-                              alert.severity === "CRITICAL" ? "text-amber-600" :
-                              alert.severity === "HIGH" ? "text-orange-600" :
-                              "text-primary"
-                            }`} />
+                          <div className={`p-2 rounded-full ${alert.severity === "CRITICAL" ? "bg-amber-500/20" :
+                              alert.severity === "HIGH" ? "bg-orange-500/20" :
+                                "bg-primary/20"
+                            }`}>
+                            <AlertTriangle className={`h-5 w-5 ${alert.severity === "CRITICAL" ? "text-amber-600" :
+                                alert.severity === "HIGH" ? "text-orange-600" :
+                                  "text-primary"
+                              }`} />
                           </div>
                           <div>
                             <Badge variant={getSeverityColor(alert.severity)} className="mb-1">

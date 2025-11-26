@@ -43,7 +43,7 @@ export default function CategoryNews() {
         const fetchNews = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`/api/news/${category}`);
+                const response = await fetch(`https://fast-backend-n6qp.onrender.com/api/news/${category}`);
                 if (!response.ok) throw new Error("Failed to fetch news");
                 const data = await response.json();
                 setArticles(data.articles || []);

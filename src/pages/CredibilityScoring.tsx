@@ -81,7 +81,7 @@ export default function CredibilityScoring() {
       if (url) formData.append("link", url);
       if (file) formData.append("image", file);
 
-      const response = await fetch("/api/verify", {
+      const response = await fetch("https://fast-backend-n6qp.onrender.com/api/verify", {
         method: "POST",
         body: formData,
       });
