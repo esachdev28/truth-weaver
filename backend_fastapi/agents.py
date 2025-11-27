@@ -205,16 +205,44 @@ class VerifyAgent:
         # Perform Search Verification
         if claim.text:
             try:
-                print(f"Searching DuckDuckGo for: {claim.text}")
+                # Improve search query to get fact-checking results
+                search_queries = [
+                    f"{claim.text} fact check",
+                    f"{claim.text} snopes",
+                    f"{claim.text} verified"
+                ]
+                
+                print(f"Searching for fact-checking evidence: {claim.text}")
                 with DDGS() as ddgs:
-                    results = list(ddgs.text(claim.text, max_results=3))
-                    for r in results:
+                    # Try multiple search strategies
+                    all_results = []
+                    for query in search_queries[:2]:  # Use first 2 queries
+                        try:
+                            results = list(ddgs.text(query, max_results=2))
+                            all_results.extend(results)
+                            if len(all_results) >= 3:
+                                break
+                        except:
+                            continue
+                    
+                    # Remove duplicates and limit to 3 results
+                    seen_urls = set()
+                    unique_results = []
+                    for r in all_results:
+                        url = r.get('href', '')
+                        if url and url not in seen_urls:
+                            seen_urls.add(url)
+                            unique_results.append(r)
+                            if len(unique_results) >= 3:
+                                break
+                    
+                    for r in unique_results:
                         claim.evidence.append(Evidence(
                             source=r.get('title', 'Unknown'),
                             content=r.get('body', ''),
                             url=r.get('href', '')
                         ))
-                    print(f"Found {len(results)} search results")
+                    print(f"Found {len(unique_results)} fact-checking results")
             except Exception as e:
                 print(f"ERROR: DuckDuckGo search failed: {e}")
                 claim.evidence.append(Evidence(
@@ -245,17 +273,39 @@ class ScoreAgent:
 
         evidence_text = "\n".join([f"- {e.content} ({e.url})" for e in claim.evidence])
         prompt = f"""
-        Analyze the following claim based on the evidence provided.
+        You are an expert fact-checker. Analyze the following claim based on the evidence provided.
+        
         Claim: {claim.text}
+        
         Evidence:
         {evidence_text}
         
-        Return a JSON object with the following keys:
-        - final_score (0-100)
-        - source_reliability (0-100)
-        - evidence_strength (0-100)
-        - consistency (0-100)
-        - verdict (VERIFIED, FALSE, MIXED, UNVERIFIED)
+        Provide a credibility assessment with these scores (0-100):
+        
+        1. final_score: Overall credibility (0=completely false, 100=completely verified)
+           - If claim is FALSE, score should be 0-30
+           - If claim is MIXED/UNCERTAIN, score should be 40-60
+           - If claim is VERIFIED, score should be 70-100
+        
+        2. source_reliability: How trustworthy are the sources (0=unreliable, 100=highly reliable)
+        
+        3. evidence_strength: How strong is the evidence (0=weak/contradictory, 100=strong/conclusive)
+        
+        4. consistency: How consistent is the evidence (0=contradictory, 100=all agrees)
+        
+        5. verdict: Must be one of: VERIFIED, FALSE, MIXED, UNVERIFIED
+           - VERIFIED: Claim is supported by strong evidence
+           - FALSE: Claim is contradicted by evidence
+           - MIXED: Evidence is contradictory or unclear
+           - UNVERIFIED: Insufficient evidence to determine
+        
+        IMPORTANT: 
+        - If evidence is irrelevant to the claim, mark as UNVERIFIED with low scores
+        - final_score should reflect the verdict (FALSE=low, VERIFIED=high)
+        - Be consistent: if verdict is FALSE, final_score must be low (0-30)
+        
+        Return ONLY a JSON object with these exact keys:
+        {{"final_score": <number>, "source_reliability": <number>, "evidence_strength": <number>, "consistency": <number>, "verdict": "<string>"}}
         """
         
         try:
