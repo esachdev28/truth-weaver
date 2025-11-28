@@ -13,9 +13,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AuthModal } from "./AuthModal";
 
 export const Header = () => {
   const [isDark, setIsDark] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -63,6 +65,7 @@ export const Header = () => {
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-6">
             <NavLink to="/" className="text-sm font-medium hover:text-primary transition-colors">Home</NavLink>
+            <NavLink to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">Dashboard</NavLink>
             <NavLink to="/agent-monitor" className="text-sm font-medium hover:text-primary transition-colors">Agent Monitor</NavLink>
             <NavLink to="/credibility" className="text-sm font-medium hover:text-primary transition-colors">Credibility</NavLink>
             <NavLink to="/crisis-alerts" className="text-sm font-medium hover:text-primary transition-colors">Crisis Alerts</NavLink>
@@ -124,7 +127,7 @@ export const Header = () => {
               <Button
                 variant="outline"
                 className="hidden md:inline-flex rounded-full"
-                onClick={() => navigate("/login")}
+                onClick={() => setAuthModalOpen(true)}
               >
                 Sign In
               </Button>
@@ -132,6 +135,7 @@ export const Header = () => {
           </div>
         </div>
       </div>
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </header>
   );
 };
