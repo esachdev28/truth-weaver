@@ -9,12 +9,13 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
+import Dashboard from "./pages/Dashboard";
 import AgentMonitor from "./pages/AgentMonitor";
 import CredibilityScoring from "./pages/CredibilityScoring";
 import CrisisAlerts from "./pages/CrisisAlerts";
 import MediaForensics from "./pages/MediaForensics";
 import CategoryNews from "./pages/CategoryNews";
-import { ChatBot } from "./components/ChatBot";
+import { AIChatWidget } from "./components/AIChatWidget";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
 
             {/* App Routes - Currently public, can be protected later */}
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/agent-monitor" element={<AgentMonitor />} />
             <Route path="/credibility" element={<CredibilityScoring />} />
             <Route path="/crisis-alerts" element={<CrisisAlerts />} />
@@ -42,7 +44,7 @@ const App = () => (
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <ChatBot />
+          <AIChatWidget />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
@@ -50,4 +52,3 @@ const App = () => (
 );
 
 export default App;
-// Deployment trigger - Wed Nov 26 01:21:40 IST 2025

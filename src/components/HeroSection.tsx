@@ -1,8 +1,13 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { AuthModal } from "./AuthModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const HeroSection = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   return (
     <section className="w-full bg-hero-bg py-16 md:py-24">
@@ -22,9 +27,9 @@ export const HeroSection = () => {
                 <Button
                   size="lg"
                   className="bg-primary hover:bg-primary-hover text-primary-foreground rounded-full px-8 py-6 text-lg font-semibold shadow-md hover:shadow-lg transition-all"
-                  onClick={() => navigate('/login')}
+                  onClick={() => user ? navigate('/dashboard') : setAuthModalOpen(true)}
                 >
-                  Login or Sign Up
+                  {user ? 'Go to Dashboard' : 'Get Started'}
                 </Button>
               </div>
             </div>
@@ -56,6 +61,7 @@ export const HeroSection = () => {
           </div>
         </div>
       </div>
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </section>
   );
 };
